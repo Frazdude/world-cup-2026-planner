@@ -817,6 +817,17 @@
       L: ["England", "Croatia", "Ghana", "Panama"]
     };
 
+    // Fixtures are displayed in BST order; these are FIFA's formal match numbers.
+    const officialMatchNumbers = [
+      1, 2, 3, 4, 6, 8, 7, 5, 10, 11, 9, 12, 14, 16, 13, 15, 20, 17,
+      18, 19, 23, 22, 21, 24, 25, 26, 27, 28, 32, 30, 29, 31, 36, 35, 33,
+      34, 38, 39, 37, 40, 43, 42, 41, 44, 47, 45, 46, 48, 51, 52, 50, 49,
+      53, 54, 55, 56, 57, 58, 60, 59, 62, 61, 66, 65, 64, 63, 68, 67, 72,
+      71, 70, 69, 73, 76, 74, 75, 78, 77, 79, 80, 82, 81, 84, 83, 85, 88,
+      86, 87, 90, 89, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102,
+      103, 104
+    ];
+
     const matches = [
       ["Thu 11 Jun 2026","20:00","Mexico","South Africa","Mexico City","A"],
       ["Fri 12 Jun 2026","03:00","Korea Republic","Czechia","Guadalajara","A"],
@@ -924,6 +935,7 @@
       ["Sun 19 Jul 2026","20:00","Final","","New York / New Jersey","Final"]
     ].map((m, index) => ({
       id: index + 1,
+      number: officialMatchNumbers[index],
       date: m[0],
       time: m[1],
       home: m[2],
@@ -933,7 +945,25 @@
       group: /^[A-L]$/.test(m[5]) ? m[5] : null
     }));
 
+    const officialResultsVersion = "2026-06-18-match-25";
+    const officialScoresByNumber = {
+      1: { h: "2", a: "0" }, 2: { h: "2", a: "1" },
+      3: { h: "1", a: "1" }, 4: { h: "3", a: "0" },
+      5: { h: "0", a: "1" }, 6: { h: "2", a: "0" },
+      7: { h: "1", a: "1" }, 8: { h: "1", a: "1" },
+      9: { h: "1", a: "0" }, 10: { h: "7", a: "1" },
+      11: { h: "2", a: "2" }, 12: { h: "5", a: "1" },
+      13: { h: "1", a: "1" }, 14: { h: "0", a: "0" },
+      15: { h: "2", a: "2" }, 16: { h: "1", a: "1" },
+      17: { h: "3", a: "1" }, 18: { h: "1", a: "4" },
+      19: { h: "3", a: "0" }, 20: { h: "3", a: "1" },
+      21: { h: "1", a: "0" }, 22: { h: "4", a: "2" },
+      23: { h: "1", a: "1" }, 24: { h: "1", a: "3" },
+      25: { h: "1", a: "1" }
+    };
+
     const storeKey = "wc2026ScoresV1";
+    const resultsVersionKey = "wc2026OfficialResultsVersion";
     const namesKey = "wc2026TeamNamesV1";
     const tabs = document.querySelectorAll(".tab");
     const views = document.querySelectorAll(".view");
@@ -992,11 +1022,25 @@
     }
 
     function loadScores() {
+      let saved = {};
       try {
-        return JSON.parse(localStorage.getItem(storeKey) || "{}");
+        saved = JSON.parse(localStorage.getItem(storeKey) || "{}");
+        if (localStorage.getItem(resultsVersionKey) !== officialResultsVersion) {
+          applyOfficialScores(saved);
+          localStorage.setItem(storeKey, JSON.stringify(saved));
+          localStorage.setItem(resultsVersionKey, officialResultsVersion);
+        }
       } catch {
-        return {};
+        applyOfficialScores(saved);
       }
+      return saved;
+    }
+
+    function applyOfficialScores(target) {
+      Object.entries(officialScoresByNumber).forEach(([number, score]) => {
+        const match = matches.find(item => item.number === Number(number));
+        if (match) target[match.id] = { ...score };
+      });
     }
 
     function loadTeamNames() {
@@ -1100,7 +1144,7 @@
       return `
         <article class="match ${watchClass}" data-id="${match.id}">
           <div class="match-top">
-            <span>${match.date} - ${match.time}</span>
+            <span>Match ${match.number} - ${match.date} - ${match.time}</span>
             <span class="stage-pill">${match.stage}</span>
           </div>
           <div class="teams">
@@ -1200,7 +1244,7 @@
       scores[match.id] = { h: homeScore, a: awayScore };
       saveScores();
       renderAll();
-      return { ok: true, message: `Match ${match.id} updated.` };
+      return { ok: true, message: `Match ${match.number} updated.` };
     }
 
     function applyBulkUpdate() {
@@ -1219,13 +1263,13 @@
           skipped.push(`Line ${index + 1}: could not read`);
           return;
         }
-        const match = matches.find(item => item.id === parsed.id);
+        const match = matches.find(item => item.number === parsed.id);
         if (!match) {
           skipped.push(`Line ${index + 1}: Match ${parsed.id} not found`);
           return;
         }
         const result = applyMatchValues(match, parsed.teamOne, parsed.scoreOne, parsed.teamTwo, parsed.scoreTwo);
-        if (result.ok) applied.push(`Match ${match.id}`);
+        if (result.ok) applied.push(`Match ${match.number}`);
         else skipped.push(`Line ${index + 1}: ${result.message}`);
       });
 
