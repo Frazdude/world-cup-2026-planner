@@ -38,6 +38,7 @@
     body {
       margin: 0;
       min-height: 100svh;
+      min-height: 100dvh;
       color: var(--ink);
       background: linear-gradient(180deg, var(--deep) 0 236px, #00c83f 236px 100%);
       letter-spacing: 0;
@@ -49,8 +50,9 @@
     .app {
       width: min(100%, 430px);
       min-height: 100svh;
+      min-height: 100dvh;
       margin: 0 auto;
-      padding: max(10px, env(safe-area-inset-top)) 14px calc(92px + env(safe-area-inset-bottom));
+      padding: max(10px, env(safe-area-inset-top)) 14px calc(104px + env(safe-area-inset-bottom));
       background:
         linear-gradient(135deg, rgba(255,255,255,.16) 0 12%, transparent 12% 100%),
         repeating-linear-gradient(90deg, rgba(0, 110, 36, .18) 0 30px, rgba(255, 255, 255, .16) 30px 60px),
@@ -178,11 +180,14 @@
 
     nav {
       position: fixed;
-      left: 50%;
+      left: 0;
+      right: 0;
       bottom: 0;
-      transform: translateX(-50%);
-      z-index: 20;
-      width: min(100%, 430px);
+      z-index: 9999;
+      width: 100%;
+      max-width: 430px;
+      min-height: calc(74px + env(safe-area-inset-bottom));
+      margin: 0 auto;
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 0;
