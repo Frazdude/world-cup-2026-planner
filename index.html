@@ -828,7 +828,7 @@
       ["Fri 12 Jun 2026","03:00","Korea Republic","Czechia","Guadalajara","A"],
       ["Fri 12 Jun 2026","20:00","Canada","Bosnia & Herzegovina","Toronto","B"],
       ["Sat 13 Jun 2026","02:00","USA","Paraguay","Los Angeles","D"],
-      ["Sat 13 Jun 2026","05:00","Australia","Turkiye","Vancouver","D"],
+      ["Sun 14 Jun 2026","05:00","Australia","Turkiye","Vancouver","D"],
       ["Sat 13 Jun 2026","20:00","Qatar","Switzerland","San Francisco Bay Area","B"],
       ["Sat 13 Jun 2026","23:00","Brazil","Morocco","New York / New Jersey","C"],
       ["Sun 14 Jun 2026","02:00","Haiti","Scotland","Boston","C"],
@@ -840,7 +840,7 @@
       ["Mon 15 Jun 2026","20:00","Belgium","Egypt","Seattle","G"],
       ["Mon 15 Jun 2026","23:00","Saudi Arabia","Uruguay","Miami","H"],
       ["Tue 16 Jun 2026","02:00","IR Iran","New Zealand","Los Angeles","G"],
-      ["Tue 16 Jun 2026","05:00","Austria","Jordan","San Francisco Bay Area","J"],
+      ["Wed 17 Jun 2026","05:00","Austria","Jordan","San Francisco Bay Area","J"],
       ["Tue 16 Jun 2026","20:00","France","Senegal","New York / New Jersey","I"],
       ["Tue 16 Jun 2026","23:00","Iraq","Norway","Boston","I"],
       ["Wed 17 Jun 2026","02:00","Argentina","Algeria","Kansas City","J"],
@@ -856,7 +856,7 @@
       ["Fri 19 Jun 2026","23:00","Scotland","Morocco","Boston","C"],
       ["Sat 20 Jun 2026","01:30","Brazil","Haiti","Philadelphia","C"],
       ["Sat 20 Jun 2026","04:00","Turkiye","Paraguay","San Francisco Bay Area","D"],
-      ["Sat 20 Jun 2026","05:00","Tunisia","Japan","Monterrey","F"],
+      ["Sun 21 Jun 2026","05:00","Tunisia","Japan","Monterrey","F"],
       ["Sat 20 Jun 2026","18:00","Netherlands","Sweden","Houston","F"],
       ["Sat 20 Jun 2026","21:00","Germany","Cote dIvoire","Toronto","E"],
       ["Sun 21 Jun 2026","01:00","Ecuador","Curacao","Kansas City","E"],
@@ -938,7 +938,14 @@
       venue: m[4],
       stage: /^[A-L]$/.test(m[5]) ? "Group " + m[5] : m[5],
       group: /^[A-L]$/.test(m[5]) ? m[5] : null
-    }));
+    })).sort((a, b) => matchSortValue(a) - matchSortValue(b));
+
+    function matchSortValue(match) {
+      const months = { Jun: 5, Jul: 6 };
+      const [, day, month, year] = match.date.split(" ");
+      const [hour, minute] = match.time.split(":").map(Number);
+      return Date.UTC(Number(year), months[month], Number(day), hour, minute);
+    }
 
     const officialResultsVersion = "2026-06-19-match-27";
     const officialScoresByNumber = {
@@ -997,6 +1004,7 @@
     function setView(name, shouldScroll = false) {
       tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.view === name));
       views.forEach(view => view.hidden = view.id !== name + "View");
+      if (name === "matches") renderMatches();
       if (name === "groups") renderGroups();
       if (name === "watch") renderWatch();
       if (name === "knockout") renderKnockout();
